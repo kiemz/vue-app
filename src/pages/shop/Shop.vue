@@ -1,12 +1,12 @@
 <template>
-  <div class="tab-bar">
-    <slot></slot>
+  <div>
+    店铺
   </div>
 </template>
 
 <script>
 export default {
-  name: 'TabBar',
+  name: 'Shop',
   data() { 
     return {
 
@@ -26,12 +26,5 @@ export default {
 </script>
 
 <style scoped>
-.tab-bar{
-  display: flex;
-  height: 45px;
-  line-height: 44px;
-  text-align: center;
-  background-color: #ffffff;
-  border-bottom: 1px solid #f5f5f5;
-}
+
 </style>

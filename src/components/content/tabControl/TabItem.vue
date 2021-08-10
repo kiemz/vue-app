@@ -1,5 +1,5 @@
 <template>
-  <div class="tab-bar-item">
+  <div class="tab-item">
     <div :class="{active:isActive}">
       <slot name="text"></slot>
     </div>
@@ -8,33 +8,42 @@
 
 <script>
 export default {
-  name: 'TabBarItem',
+  name: 'TabItem',
   data() { 
     return {
-      isActive: true
+      curkey: []
     }
   },
   components: {},
-
+  props: {
+    isAct:Boolean
+  },
   ceated(){},
 
-  computed: {},
+  computed: {
+    isActive(){
+      return this.isAct
+    }
+  },
 
   mounted(){},
 
-  methods: {}
+  methods: {
+
+  }
 }
 
 </script>
 
 <style lang="less" scoped>
-.tab-bar-item{
+.tab-item{
   flex: 1;
   font-size: 16px;
   font-family: PingFangSC, PingFangSC-Medium;
-  font-weight: bolder;
+  font-weight: normal;
   color: #333333;
   .active{
+    font-weight: bolder;
     display: inline-block;
     position: relative;
     color: #ff6900;
