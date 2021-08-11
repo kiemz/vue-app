@@ -28,7 +28,7 @@ export default {
   components: {
     TabItem
   },
-  ceated(){},
+  created(){},
 
   computed: {},
 
@@ -38,7 +38,6 @@ export default {
     itemClick(keyword,index){
       this.keyword = keyword
       this.cur = index
-      console.log(this.keyword);
       this.$emit('keywordChange',this.keyword)
     }
   }

@@ -1,5 +1,5 @@
 <template>
-  <div id="index">
+  <div class="index">
 
     <nav-bar class="nav-bar">
       <a slot="left" class="nav-back"></a>
@@ -7,7 +7,7 @@
        <form action="" method="get">
           <label for="">
             <i class="icon-search"></i>
-            <input type="text"  class="input-search empty" placeholder="请选择：如设计logo"> 
+            <input type="text"  class="input-search empty" placeholder="如:logo设计"> 
           </label>
        </form>
       </div>
@@ -16,15 +16,17 @@
       </a>
     </nav-bar>
     
-    <tab-control @keywordChange="keywordChange"></tab-control>
-    
+    <tab-control class="tab-control" @keywordChange="keywordChange"></tab-control>
+    <filter-nav class="filter-nav"></filter-nav>
+
     <div class="search-container">
-      <filter-nav></filter-nav>
       <div class="search-bar">
         <img src="../assets/img/bar-search.png" alt="">
       </div>
+      <item-list :listData="listData"></item-list>
     </div>
 
+    
 
   </div>
 </template>
@@ -33,6 +35,8 @@
 import NavBar from '../components/common/navbar/NavBar'
 import TabControl from '../components/content/tabControl/TabControl'
 import FilterNav from '../components/content/FilterNav'
+import ItemList from '../components/content/itemList/itemList'
+
 import axios from 'axios'
 
 export default {
@@ -40,12 +44,15 @@ export default {
   data() { 
     return {
       formData: {},
+      params: {},
+      listData: []
     }
   },
   components: {
     NavBar,
     TabControl,
-    FilterNav
+    FilterNav,
+    ItemList
   },
 
   created(){
@@ -58,15 +65,7 @@ export default {
 
   methods: {
     initData(){
-      this.formData = {}
-    },
-    keywordChange(data){
-      this.formData[data]=data
-      console.log(this.formData);
-      this.initData()
-    },
-    getData(){
-      axios.post('/service/search/v2', {
+      this.params = {
         page: 0,
         pagesize: 20,
         sort: 1,
@@ -76,9 +75,22 @@ export default {
         locationCityId: 3418,
         locationProvinceId: 6561,
         pageSign: 'P20200525001'
-      })
+      }
+    },
+    keywordChange(type){
+      this.formData[type]=type
+      this.getData()
+      this.formData = {}
+    },
+    getData(){
+      axios.post('/service/search/v2', this.params)
       .then(res => {
         console.log(res);
+        let result = {}
+        result = res.data.data
+        console.log(result);
+        this.listData = result.list
+        console.log(this.listData);
       })
       .catch(err => {
         console.log(err);
@@ -90,6 +102,9 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.index{
+  position: relative;
+}
 .empty{
   padding: 0 25px 0 24px;
 }
@@ -102,11 +117,23 @@ export default {
     width: 100%;
   }
 }
+.search-bar{
+  margin-bottom: 10px;
+}
 input::-webkit-input-placeholder{
   color: #bdbebd;
 }
 .nav-bar{
   padding: 0 15px;
+  position: sticky;
+  top: 0;
+  z-index: 9;
+}
+.filter-nav{
+  background-color: #f4f4f4;
+  position: sticky;
+  top: 45px;
+  z-index: 9;
 }
 .input-wrap{
   background-color: #f3f3f3;

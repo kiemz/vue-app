@@ -71,7 +71,7 @@ export default {
   },
   components: {},
 
-  ceated(){},
+  created(){},
 
   computed: {},
 
@@ -87,6 +87,9 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.select-wrap{
+  padding: 0 15px;
+}
 .isChecked{
   a{
     color: #ff6900;

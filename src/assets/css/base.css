@@ -1,11 +1,10 @@
 @import "./normalize.css";
 
+
+
 /*:root -> 获取根元素html*/
 :root {
   --color-text: #666;
-  --color-high-text: #ff5777;
-  --color-tint: #ff8198;
-  --color-background: #fff;
   --font-size: 14px;
   --line-height: 1.5;
 }
@@ -19,11 +18,11 @@
 }
 
 body {
-  font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  font-family: PingFangSC, PingFangSC-Medium;
   user-select: none; /* 禁止用户鼠标在页面上选中文字/图片等 */
   -webkit-tap-highlight-color: transparent; /* webkit是苹果浏览器引擎，tap点击，highlight背景高亮，color颜色，颜色用数值调节 */
-  background: var(--color-background);
   color: var(--color-text);
+  background-color: #f4f4f4;
   /* rem vw/vh */
   width: 100vw;
 }
@@ -47,18 +46,16 @@ a {
   zoom: 1;
 }
 
-/* .left {
-  float: left;
-}
+html, body, ul, li, ol, dl, dd, dt, p, h1, h2, h3, h4, h5, h6, form, fieldset, legend, img { margin:0; padding:0; }
+fieldset, img,input,button { border:none; padding:0;margin:0;outline-style:none; }   /*去掉input等聚焦时的蓝色边框*/
+ul, ol { list-style:none; }
+input { padding-top:0; padding-bottom:0; font-family: "SimSun","宋体";}
+select, input { vertical-align:middle;}
+select, input, textarea { font-size:12px; margin:0; }
+textarea { resize:none; } /*防止拖动*/
+img {border:0; vertical-align:middle; }  /*  去掉图片低测默认的3像素空白缝隙，或者用display：block也可以*/
+table { border-collapse:collapse; }
 
-.right {
-  float: right;
-} */
-input{
-  outline: none;
-  border: none;
-}
-
-body{
-  background-color: #f4f4f4;
-}
+h1,h2,h3,h4,h5,h6 {text-decoration:none;font-weight:normal;font-size:100%;}  /*设置h标签的大小，设置跟父亲一样大的字体font-size:100%;*/
+s,i,em{font-style:normal;text-decoration:none;}
+*{ box-sizing: border-box; }

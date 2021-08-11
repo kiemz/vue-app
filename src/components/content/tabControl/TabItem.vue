@@ -18,7 +18,7 @@ export default {
   props: {
     isAct:Boolean
   },
-  ceated(){},
+  created(){},
 
   computed: {
     isActive(){
