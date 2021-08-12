@@ -16,8 +16,12 @@
       </a>
     </nav-bar>
     
-    <tab-control class="tab-control" @keywordChange="keywordChange"></tab-control>
-    <filter-nav class="filter-nav"></filter-nav>
+    <tab-control :class="['tab-control',{'show-tab': isShow ? true : false}]" 
+    @keywordChange="keywordChange"></tab-control>
+    <filter-nav :class="['filter-nav',{'topDist': isShow ? true : false}]" 
+    @showBlock="showBlock"
+    :allCity="allCity"
+    :provinceData="provinceData"></filter-nav>
 
     <div class="search-container">
       <div class="search-bar">
@@ -45,7 +49,11 @@ export default {
     return {
       formData: {},
       params: {},
-      listData: []
+      listData: [],
+      allCity: {},
+      cityData: {},
+      isShow: '',
+      provinceData: [],
     }
   },
   components: {
@@ -56,7 +64,9 @@ export default {
   },
 
   created(){
+    this.initData()
     this.getData()
+    this.getCityData()
   },
 
   computed: {},
@@ -64,6 +74,9 @@ export default {
   mounted(){},
 
   methods: {
+    showBlock(data){
+      this.isShow = data
+    },
     initData(){
       this.params = {
         page: 0,
@@ -83,18 +96,37 @@ export default {
       this.formData = {}
     },
     getData(){
-      axios.post('/service/search/v2', this.params)
+      let params = this.params
+      axios.post('/service/search/v2', {params})
       .then(res => {
-        console.log(res);
         let result = {}
         result = res.data.data
-        console.log(result);
         this.listData = result.list
-        console.log(this.listData);
       })
       .catch(err => {
         console.log(err);
       })
+    },
+    getCityData(){
+      axios.post('/api/getAllCity')
+      .then(res => {
+        let result = {}
+        result = res.data.data
+        this.allCity = result
+        this.dealData(result)
+      })
+      .catch(err => {
+        console.log(err);
+      })
+    },
+    dealData(data){
+      let province = []
+      for(let i = 0;i<data.list.length;i++){
+        if(data.list[i].provinceName === data.list[i].cityName){
+          province.push(data.list[i].provinceName)
+        }
+      }
+      this.provinceData = province
     }
   }
 }
@@ -102,8 +134,17 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.show-tab{
+  position: sticky;
+  top: 45px;
+  z-index: 9;
+}
 .index{
   position: relative;
+}
+.fixed{
+  position: fixed;
+  overflow: hidden;
 }
 .empty{
   padding: 0 25px 0 24px;
@@ -134,6 +175,9 @@ input::-webkit-input-placeholder{
   position: sticky;
   top: 45px;
   z-index: 9;
+}
+.topDist{
+  top:90px;
 }
 .input-wrap{
   background-color: #f3f3f3;
