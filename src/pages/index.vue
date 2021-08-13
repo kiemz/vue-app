@@ -27,7 +27,7 @@
       <div class="search-bar">
         <img src="../assets/img/bar-search.png" alt="">
       </div>
-      <item-list :listData="listData"></item-list>
+      <item-list :listData="listData" :curCity='curCity'></item-list>
     </div>
 
     
@@ -42,18 +42,32 @@ import FilterNav from '../components/content/FilterNav'
 import ItemList from '../components/content/itemList/itemList'
 
 import axios from 'axios'
+import qs from 'qs'
 
 export default {
   name: 'index',
   data() { 
     return {
       formData: {},
-      params: {},
+      params: {
+        page: 0,
+        pagesize: 20,
+        sort: 1,
+        minOpenShopDays: 0,
+        userType: 0,
+        platform: 0,
+        pageSign: 'P20200525001',
+      },
       listData: [],
       allCity: {},
       cityData: {},
       isShow: '',
       provinceData: [],
+      curCity: '',
+      regionId: 0,
+      curProvinceId: 0,
+      cityidfilter: [],
+      provinceidfilter: []
     }
   },
   components: {
@@ -63,10 +77,9 @@ export default {
     ItemList
   },
 
-  created(){
+  async created(){
+    await this.getCityData()
     this.initData()
-    this.getData()
-    this.getCityData()
   },
 
   computed: {},
@@ -75,40 +88,59 @@ export default {
 
   methods: {
     showBlock(data){
-      this.isShow = data
+      this.isShow = data.isShow
+      if(!data.isShow){
+        let params = {
+          regionId: data.regionId,
+          'cityidfilter[0]': data.cityidfilter[0],
+          'provinceidfilter[0]': data.provinceidfilter[0]
+        }
+        this.getData(params)
+      }
+      this.curCity = data.curCity
+      this.regionId = data.regionId
+      this.cityidfilter = data.cityidfilter
+      this.provinceidfilter = data.provinceidfilter
     },
     initData(){
-      this.params = {
-        page: 0,
-        pagesize: 20,
-        sort: 1,
-        minOpenShopDays: 0,
-        userType: 0,
-        platform: 0,
-        locationCityId: 3418,
-        locationProvinceId: 6561,
-        pageSign: 'P20200525001'
+      let params = {
+        locationCityId: this.allCity.local.cityId,
+        locationProvinceId: this.allCity.local.provinceId
       }
+      this.curCity = this.allCity.local.provinceName
+      this.getData(params)
     },
     keywordChange(type){
       this.formData[type]=type
       this.getData()
       this.formData = {}
     },
-    getData(){
-      let params = this.params
-      axios.post('/service/search/v2', {params})
+    getData(params = {}){
+      
+      const data = {
+        ...this.params,
+        ...params
+      }
+
+      console.log(data);
+      axios.post('/service/search/v2', qs.stringify(data), {
+        headers: {
+          // 'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      })
       .then(res => {
+        console.log('-',res);
         let result = {}
         result = res.data.data
         this.listData = result.list
+        console.log(result.list);
       })
       .catch(err => {
         console.log(err);
       })
     },
     getCityData(){
-      axios.post('/api/getAllCity')
+      return axios.post('/api/getAllCity')
       .then(res => {
         let result = {}
         result = res.data.data
@@ -123,7 +155,7 @@ export default {
       let province = []
       for(let i = 0;i<data.list.length;i++){
         if(data.list[i].provinceName === data.list[i].cityName){
-          province.push(data.list[i].provinceName)
+          province.push(data.list[i])
         }
       }
       this.provinceData = province

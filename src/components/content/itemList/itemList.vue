@@ -3,7 +3,8 @@
     <item-card 
     v-for="(item,index) in listData" 
     :key="index"
-    :itemInfo="item"></item-card>
+    :itemInfo="item"
+    :curCity="curCity"></item-card>
   </div>
 </template>
 
@@ -19,7 +20,8 @@ export default {
     }
   },
   props: {
-    listData: Array
+    listData: Array,
+    curCity: String
   },
   components: {
     ItemCard

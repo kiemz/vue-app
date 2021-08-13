@@ -24,7 +24,7 @@
           </span>
           <span class="item-sales fonts-size">{{itemInfo.saleCount+'销量'}}</span>
           <span class="item-score fonts-size">{{itemInfo.comprehensiveScore+'评分'}}</span>
-          <!-- <span class="item-ad fonts-size">广告</span> -->
+          <span class="item-ad fonts-size">{{itemInfo.adInfo ? '广告' : ''}}</span>
         </div>     
         <div class="comment">
             <span class="comment-eg">{{itemInfo.serviceComment}}</span>
@@ -32,7 +32,7 @@
         <div class="shop-block">
           <div class="shop-info">
             <p class="shop-name">{{itemInfo.shopName}}</p>
-            <span class="shop-address">&nbsp;{{itemInfo.provinceName}}</span>
+            <span class="shop-address">&nbsp;{{curCity}}</span>
           </div>
           <span class="shop-service">免费咨询</span>
         </div>    
@@ -50,12 +50,8 @@ export default {
     }
   },
   props: {
-    itemInfo: Object
-  },
-  filters: {
-    // numFilter(value){
-    //   let 
-    // }
+    itemInfo: Object,
+    curCity: String
   },
   methods: {}
 }

@@ -9,7 +9,10 @@ module.exports = {
             },
             '/api': {
                 target: 'https://m.zbj.com'
-            }
+            },
+            '/city': {
+              target: 'https://m.zbj.com'
+          }
         }
     }
 }

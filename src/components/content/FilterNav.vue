@@ -21,10 +21,10 @@
                   <li
                     v-for="(item, index) in provinceData"
                     :key="index"
-                    :class="['city-item', { cityActive: cityShow == item }]"
+                    :class="['city-item', { cityActive: cityShowItem == item.provinceName }]"
                     @click.stop="optCity(item)"
                   >
-                    {{ item }}
+                    {{ item.provinceName }}
                   </li>
                 </ul>
               </div>
@@ -32,14 +32,21 @@
                 <ul>
                   <li v-for="(item, index) in cityArray"
                     :key="index"
-                    :class="['city-item', { cityActive: cityShowItem1 == item }]"
+                    :class="['city-item', { cityActive: cityShowItem1 == item.cityName }]"
                     @click.stop="optCity1(item)">
-                    {{item}}
+                    {{item.cityName}}
                   </li>
                 </ul>
               </div>
-              <div class="city-level city-level3">
-                <ul></ul>
+              <div :class="['city-level',{'city-level3':secondOpt}]">
+                <ul>
+                  <li v-for="(item, index) in cityTown"
+                    :key="index"
+                    :class="['city-item', { cityActive: cityShowItem2 == item.regionName }]"
+                    @click.stop="optCity2(item)">
+                    {{item.regionName}}
+                  </li>
+                </ul>
               </div>
             </div>
             <div class="mask"></div>
@@ -48,7 +55,7 @@
       </div>
 
       <div
-        :class="['filter-complex', { isChecked: isActive == 'filter-complex' }]"
+        :class="['filter-complex', { isChecked: isActive == 'filter-complex' },{arrowChange:isActive == isShow}]"
         @click="showForm('filter-complex')"
       >
         <div>
@@ -56,11 +63,16 @@
             <label for="">综合&nbsp;</label>
             <i class="select-icon"></i>
           </a>
-          <div class="shadow">
-            <div class="city-content">
-              <div class="city-level"></div>
-              <div class="city-level"></div>
-              <div class="city-level"></div>
+          <div 
+          :class="['shadow', { curShow: isShow == 'filter-complex' }]"
+          @click.stop="hideBlock('hide')">
+            <div class="sort-content">
+              <ul>
+                <li>综合</li>
+                <li>评分从高到低</li>
+                <li>价格从低到高</li>
+                <li>价格从高到低</li>
+              </ul>
             </div>
             <div class="mask"></div>
           </div>
@@ -96,17 +108,28 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: "FilterNav",
   data() {
     return {
+      isChecked: false,
       isActive: "filter-complex",
       isShow: "",
-      cityShow: "",
+      cityShowItem: "",
       cityShowItem1: "",
+      cityShowItem2: "",
       cityArray: [],
+      cityTown: [],
       firstOpt: false,
-      curCity: ''
+      secondOpt: false,
+      curCity: '',
+      regionId: 0,
+      curProvinceId: 0,
+      cityidfilter: [],
+      provinceidfilter: [],
+      sort:1
     };
   },
   props: {
@@ -123,36 +146,92 @@ export default {
   },
 
   mounted() {},
-
+  watch: {
+    // 如果 `textValue` 发生改变，这个函数就会运行
+    curCity(newVal,oldVal){
+      if(newVal !== oldVal){
+        this.hideBlock()
+      }
+    }
+  },
   methods: {
     showBlock() {
-      this.$emit("showBlock", this.isShow);
+      this.$emit("showBlock",{
+        isShow:this.isShow,
+        sort:this.sort,
+        curCity:this.curCity,
+        regionId:this.regionId,
+        cityidfilter:this.cityidfilter,
+        provinceidfilter:this.provinceidfilter}); 
     },
     hideBlock() {
-      this.isShow = "";
-      this.$emit("showBlock", this.isShow);
+      this.isShow = ''
+      this.$emit("showBlock", {
+        isShow:this.isShow,
+        sort:this.sort,
+        curCity:this.curCity,
+        regionId:this.regionId,
+        cityidfilter:this.cityidfilter,
+        provinceidfilter:this.provinceidfilter});     
     },
     showForm(curFilter, curBlock = "") {
       this.isActive = curFilter;
       this.isShow = curBlock ? curBlock : curFilter;
       console.log(this.isShow);
     },
-    optCity(cityName) {
+    optCity(provinceItem) {
       this.firstOpt = true
-      this.cityShow = cityName;
+      this.cityTown = []
+      this.cityShowItem = provinceItem.provinceName;
+      this.provinceidfilter = [provinceItem.provinceId,provinceItem.provinceName]
       let data = this.allCity.list;
       this.cityArray = []
       for(let i = 0;i<data.length;i++){
-        if(data[i].provinceName === cityName){
-          this.cityArray.push(data[i].cityName)
+        if(data[i].provinceName === provinceItem.provinceName){
+          let {cityName,cityId} = data[i]
+          this.cityArray.push({cityName,cityId})
         }
       }
+
     },
-    optCity1(cityName) {
+    optCity1(cityItem) {
+      if(this.isChecked){
+        this.isChecked = false
+        this.curCity = this.cityShowItem1
+        this.cityShowItem2 = ''
+        this.regionId = 0
+        this.cityidfilter = [cityItem.cityId,cityItem.cityName]
+        this.isShow = ''
+        return
+      }
       this.secondOpt = true
-      this.cityShowItem1 = cityName;
-      
+      this.cityShowItem1 = cityItem.cityName
+      this.cityidfilter = [cityItem.cityId,cityItem.cityName]
+      this.getCityTown(cityItem.cityId)
     },
+    optCity2(townItem) {
+      this.cityShowItem2 = townItem.regionName
+      this.curCity = townItem.regionName
+      this.regionId = townItem.regionId
+      this.cityidfilter = [townItem.regionId,townItem.regionName]
+      this.isShow = ''
+    },
+    getCityTown(cityId){
+      this.isChecked = true
+      axios.post('/city/getCombineCityTown', {cityId})
+        .then(res => {
+          if(res.data.data){
+            this.cityTown = res.data.data
+            this.secondOpt = true 
+          }else{
+            this.curCity = this.cityShowItem1
+            this.isShow = ''
+          }
+        })
+        .catch(err => {
+          console.log(err);
+        })
+    }
   },
 };
 </script>
@@ -241,6 +320,11 @@ export default {
     }
   }
 }
+// .arrowChange{
+//   .select-icon{
+//     transform: rotate(180deg) translateY(-50%);
+//   }
+// }
 .curShow {
   display: block;
   position: absolute;
@@ -251,22 +335,46 @@ export default {
   z-index: 10;
   .city-content {
     display: flex;
-    background-color: #eee;
     width: 100%;
     max-height: 320px;
-    .city-level1 {
-      background-color: rebeccapurple;
+    .city-level1 ul li{
+      background-color: #fff;
     }
-    .city-level2 {
-      background-color: royalblue;
+    .city-level2 ul li{
+      background-color: #fff;
     }
-    .city-level3 {
-      background-color: red;
+    .city-level3 ul li{
+      background-color: #fff;
     }
     .city-level {
       flex: 1;
       overflow: scroll;
-      background-color: #fff;
+      background-color: #eeeeee;
+    }
+  }
+  .sort-content{
+    width: 100%;
+    background-color: #fff;
+    padding: 0 15px;
+    ul{
+      display: flex;
+      flex-direction: column;
+      li{
+        background-color: #fff;
+        position: relative;
+         &::after {
+          content: "";
+          width: 5px;
+          height: 10px;
+          border-right: 1px solid #ff6900;
+          border-bottom: 1px solid #ff6900;
+          position: absolute;
+          right: 0;
+          top: 50%;
+          transform: translateY(-50%) rotate(45deg);
+
+        }
+      }
     }
   }
 }
