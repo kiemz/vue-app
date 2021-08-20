@@ -21,7 +21,12 @@
     <filter-nav :class="['filter-nav',{'topDist': isShow ? true : false}]" 
     @showBlock="showBlock"
     :allCity="allCity"
-    :provinceData="provinceData"></filter-nav>
+    :provinceData="provinceData"
+    :curCity="curCity"
+    :regionId="regionId"
+    :cityidfilter="cityidfilter"
+    :provinceidfilter="provinceidfilter"
+    :params="params"></filter-nav>
 
     <div class="search-container">
       <div class="search-bar">
@@ -30,8 +35,7 @@
       <item-list :listData="listData" :curCity='curCity'></item-list>
     </div>
 
-    
-
+  
   </div>
 </template>
 
@@ -90,17 +94,24 @@ export default {
     showBlock(data){
       this.isShow = data.isShow
       if(!data.isShow){
+        this.curCity = data.curCity
+        this.regionId = data.regionId
+        this.cityidfilter = data.cityidfilter
+        this.provinceidfilter = data.provinceidfilter
+        this.params.sort = data.sort
         let params = {
           regionId: data.regionId,
+          sort: data.sort,
           'cityidfilter[0]': data.cityidfilter[0],
           'provinceidfilter[0]': data.provinceidfilter[0]
         }
+        if(!data.cityidfilter.length&&!data.provinceidfilter.length){          
+          this.params.sort = data.sort
+          this.initData()
+          return
+        }
         this.getData(params)
       }
-      this.curCity = data.curCity
-      this.regionId = data.regionId
-      this.cityidfilter = data.cityidfilter
-      this.provinceidfilter = data.provinceidfilter
     },
     initData(){
       let params = {
@@ -122,22 +133,19 @@ export default {
         ...params
       }
 
-      console.log(data);
       axios.post('/service/search/v2', qs.stringify(data), {
         headers: {
           // 'Content-Type': 'application/x-www-form-urlencoded'
         }
       })
       .then(res => {
-        console.log('-',res);
         let result = {}
         result = res.data.data
         this.listData = result.list
-        console.log(result.list);
       })
       .catch(err => {
         console.log(err);
-      })
+      })                                                                      
     },
     getCityData(){
       return axios.post('/api/getAllCity')
