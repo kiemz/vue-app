@@ -1,56 +1,67 @@
 <template>
-  <div class="index">
-
+  <div class="index" ref="scroll">
     <nav-bar class="nav-bar">
       <a slot="left" class="nav-back"></a>
       <div slot="center" class="input-wrap">
-       <form action="" method="get">
+        <form action="" method="get">
           <label for="">
             <i class="icon-search"></i>
-            <input type="text"  class="input-search empty" placeholder="如:logo设计"> 
+            <input
+              type="text"
+              class="input-search empty"
+              placeholder="如:logo设计"
+            />
           </label>
-       </form>
+        </form>
       </div>
       <a slot="right" class="nav-kinds">
-        <img src="../assets/img/kinds.png" alt="">
+        <img src="../assets/img/kinds.png" alt="" />
       </a>
     </nav-bar>
-    
-    <tab-control :class="['tab-control',{'show-tab': isShow ? true : false}]" 
-    @keywordChange="keywordChange"></tab-control>
-    <filter-nav :class="['filter-nav',{'topDist': isShow ? true : false}]" 
-    @showBlock="showBlock"
-    :allCity="allCity"
-    :provinceData="provinceData"
-    :curCity="curCity"
-    :regionId="regionId"
-    :cityidfilter="cityidfilter"
-    :provinceidfilter="provinceidfilter"
-    :params="params"></filter-nav>
+
+    <tab-control
+      :class="['tab-control']"
+      @keywordChange="keywordChange"
+    ></tab-control>
+    <filter-nav
+      :class="['filter-nav']"
+      @showBlock="showBlock"
+      :allCity="allCity"
+      :facetsData="facetsData"
+      :provinceData="provinceData"
+      :curCity="curCity"
+      :regionId="regionId"
+      :cityidfilter="cityidfilter"
+      :provinceidfilter="provinceidfilter"
+      :navigationIds="navigationIds"
+      :navigationValueIds="navigationValueIds"
+      :tagsName="tagsName"
+      :params="params"
+    ></filter-nav>
 
     <div class="search-container">
       <div class="search-bar">
-        <img src="../assets/img/bar-search.png" alt="">
+        <img src="../assets/img/bar-search.png" alt="" />
       </div>
-      <item-list :listData="listData" :curCity='curCity'></item-list>
+      <item-list :listData="listData" :curCity="curCity"></item-list>
+      <div class="loadMore">{{loadText}}</div>
+      <!-- :class="['loadMore',{loadMoreShow:!this.load}]" -->
     </div>
-
-  
   </div>
 </template>
 
 <script>
-import NavBar from '../components/common/navbar/NavBar'
-import TabControl from '../components/content/tabControl/TabControl'
-import FilterNav from '../components/content/FilterNav'
-import ItemList from '../components/content/itemList/itemList'
+import NavBar from "../components/common/navbar/NavBar";
+import TabControl from "../components/content/tabControl/TabControl";
+import FilterNav from "../components/content/FilterNav";
+import ItemList from "../components/content/itemList/itemList";
 
-import axios from 'axios'
-import qs from 'qs'
+import axios from "axios";
+import qs from "qs";
 
 export default {
-  name: 'index',
-  data() { 
+  name: "index",
+  data() {
     return {
       formData: {},
       params: {
@@ -60,166 +71,231 @@ export default {
         minOpenShopDays: 0,
         userType: 0,
         platform: 0,
-        pageSign: 'P20200525001',
+        pageSign: "P20200525001",
       },
       listData: [],
+      facetsData: [],
       allCity: {},
       cityData: {},
-      isShow: '',
+      isShow: false,
       provinceData: [],
-      curCity: '',
+      curCity: "",
       regionId: 0,
       curProvinceId: 0,
       cityidfilter: [],
-      provinceidfilter: []
-    }
+      provinceidfilter: [],
+      navigationIds: -1,
+      navigationValueIds: -1,
+      tagsName: -1,
+      allParams: {},
+      load: true,
+      loadText: '加载更多...'
+    };
   },
   components: {
     NavBar,
     TabControl,
     FilterNav,
-    ItemList
+    ItemList,
   },
 
-  async created(){
-    await this.getCityData()
-    this.initData()
+  async created() {
+    await this.getCityData();
+    this.initData();
   },
 
   computed: {},
-
-  mounted(){},
+  watch: {},
+  mounted() {
+    window.addEventListener("scroll", this.onScroll);
+  },
 
   methods: {
-    showBlock(data){
-      this.isShow = data.isShow
-      if(!data.isShow){
-        this.curCity = data.curCity
-        this.regionId = data.regionId
-        this.cityidfilter = data.cityidfilter
-        this.provinceidfilter = data.provinceidfilter
-        this.params.sort = data.sort
+    onScroll(){
+      let innerHeight = this.$refs.scroll.clientHeight;
+      let outerHeight = document.documentElement.clientHeight;
+      let scrollTop = document.documentElement.scrollTop;
+    
+      if(outerHeight + scrollTop >= innerHeight - 60 && this.load){
+        this.load = false
+        this.allParams.page = this.allParams.page +1
+        const data = this.allParams
+        console.log(data);
+        axios
+          .post("/service/search/v2", qs.stringify(data))
+          .then((res) => {
+            let result = {};
+            result = res.data.data;
+            if(result.list&&result.list.length){
+              this.listData.push(...result.list);
+              this.load = true
+            }else{
+              this.load = false
+              this.loadText = '没有更多了'
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+      
+    },
+    showBlock(data) {
+      window.scrollTo(0,0)
+      this.isShow = data.isShow;
+      document.body.style.position = "fixed";
+      if (!data.isShow) {
+        this.curCity = data.curCity;
+        this.regionId = data.regionId;
+        this.cityidfilter = data.cityidfilter;
+        this.provinceidfilter = data.provinceidfilter;
+        this.params.sort = data.sort;
+        this.navigationIds = data.navigationIds;
+        this.navigationValueIds = data.navigationValueIds;
+        this.tagsName = data.tagsName;
         let params = {
           regionId: data.regionId,
           sort: data.sort,
-          'cityidfilter[0]': data.cityidfilter[0],
-          'provinceidfilter[0]': data.provinceidfilter[0]
+          "cityidfilter[0]": data.cityidfilter[0],
+          "provinceidfilter[0]": data.provinceidfilter[0],
+          navigationIds: data.navigationIds,
+          navigationValueIds: data.navigationValueIds,
+          tagsName: data.tagsName,
+        };
+        // console.log('index里的showBlock的params',params);
+        if (!data.cityidfilter.length && !data.provinceidfilter.length) {
+          params.locationCityId = this.allCity.local.cityId;
+          params.locationProvinceId = this.allCity.local.provinceId;
         }
-        if(!data.cityidfilter.length&&!data.provinceidfilter.length){          
-          this.params.sort = data.sort
-          this.initData()
-          return
-        }
-        this.getData(params)
+        // console.log('index里的showBlock',this.facetsData);
+
+        this.getData(params);
       }
     },
-    initData(){
+    initData() {
       let params = {
         locationCityId: this.allCity.local.cityId,
-        locationProvinceId: this.allCity.local.provinceId
-      }
-      this.curCity = this.allCity.local.provinceName
-      this.getData(params)
+        locationProvinceId: this.allCity.local.provinceId,
+      };
+      this.curCity = this.allCity.local.provinceName;
+      this.getData(params);
     },
-    keywordChange(type){
-      this.formData[type]=type
-      this.getData()
-      this.formData = {}
+    keywordChange(type) {
+      this.formData[type] = type;
+      this.getData();
+      this.formData = {};
     },
-    getData(params = {}){
-      
+    getData(params = {}) {
+      // console.log('index里的getData的params',params );
+        // let arr= this.regionId == 0 ? this.cityidfilter : 1
+        // arr.unshift()
+        // sessionStorage.setItem('cityArray',JSON.stringify(arr))
+
+      document.body.style.position = "static";
       const data = {
         ...this.params,
-        ...params
-      }
-
-      axios.post('/service/search/v2', qs.stringify(data), {
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      })
-      .then(res => {
-        let result = {}
-        result = res.data.data
-        this.listData = result.list
-      })
-      .catch(err => {
-        console.log(err);
-      })                                                                      
+        ...params,
+      };
+      this.allParams = {...data}
+      // console.log('index里的getData的data',data);
+      axios
+        .post("/service/search/v2", qs.stringify(data))
+        .then((res) => {
+          let result = {};
+          result = res.data.data;
+          this.listData = result.list;
+          if (result.facets && result.facets.length) {
+            this.facetsData = result.facets;
+          }
+          // console.log('result',result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      // console.log('index里的get',this.facetsData);
     },
-    getCityData(){
-      return axios.post('/api/getAllCity')
-      .then(res => {
-        let result = {}
-        result = res.data.data
-        this.allCity = result
-        this.dealData(result)
-      })
-      .catch(err => {
-        console.log(err);
-      })
+    getCityData() {
+      return axios
+        .post("/api/getAllCity")
+        .then((res) => {
+          let result = {};
+          result = res.data.data;
+          this.allCity = result;
+          this.dealData(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     },
-    dealData(data){
-      let province = []
-      for(let i = 0;i<data.list.length;i++){
-        if(data.list[i].provinceName === data.list[i].cityName){
-          province.push(data.list[i])
+    dealData(data) {
+      let province = [];
+      for (let i = 0; i < data.list.length; i++) {
+        if (data.list[i].provinceName === data.list[i].cityName) {
+          province.push(data.list[i]);
         }
       }
-      this.provinceData = province
-    }
-  }
-}
-
+      this.provinceData = province;
+      this.provinceData.unshift({provinceName: '常用',provinceId: 9999})
+    },
+  },
+};
 </script>
 
 <style lang="less" scoped>
-.show-tab{
+.loadMore{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 44px;
+  line-height: 36px;
+}
+.show-tab {
   position: sticky;
   top: 45px;
   z-index: 9;
 }
-.index{
+.index {
   position: relative;
 }
-.fixed{
+.fixed {
   position: fixed;
   overflow: hidden;
 }
-.empty{
+.empty {
   padding: 0 25px 0 24px;
 }
-.search-container{
+.search-container {
+  position: relative;
   padding: 0 15px;
 }
-.search-bar{
+.search-bar {
   width: 100%;
-  img{
+  img {
     width: 100%;
   }
 }
-.search-bar{
+.search-bar {
   margin-bottom: 10px;
 }
-input::-webkit-input-placeholder{
+input::-webkit-input-placeholder {
   color: #bdbebd;
 }
-.nav-bar{
+.nav-bar {
   padding: 0 15px;
   position: sticky;
   top: 0;
   z-index: 9;
 }
-.filter-nav{
+.filter-nav {
   background-color: #f4f4f4;
   position: sticky;
   top: 45px;
   z-index: 9;
 }
-.topDist{
-  top:90px;
+.topDist {
+  top: 90px;
 }
-.input-wrap{
+.input-wrap {
   background-color: #f3f3f3;
   height: 32px;
   padding-left: 10px;
@@ -227,14 +303,14 @@ input::-webkit-input-placeholder{
   margin-right: 5px;
   display: flex;
   align-items: center;
-  form{
+  form {
     flex: 1;
   }
-  label{
+  label {
     display: flex;
     position: relative;
     align-items: center;
-    .icon-search{
+    .icon-search {
       position: absolute;
       display: inline-block;
       width: 16px;
@@ -244,7 +320,7 @@ input::-webkit-input-placeholder{
       background-size: 100%;
       background-position: center;
     }
-    .input-search{
+    .input-search {
       height: 24px;
       width: 100%;
       background-color: transparent;
@@ -253,7 +329,7 @@ input::-webkit-input-placeholder{
   }
 }
 
-.nav-back{
+.nav-back {
   display: block;
   width: 12px;
   height: 12px;
@@ -262,16 +338,14 @@ input::-webkit-input-placeholder{
   border-left: 2px solid #ccc;
   transform: rotate(45deg);
 }
-.nav-kinds{
+.nav-kinds {
   display: flex;
   width: 100%;
   height: 100%;
   position: relative;
   right: -8px;
-  img{
+  img {
     width: 20px;
   }
 }
-
-
 </style>

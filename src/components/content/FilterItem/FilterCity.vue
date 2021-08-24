@@ -1,15 +1,14 @@
 <template>
   <div
     class="filter-city isChecked"
-    @click.stop="showForm('filter-complex', 'filter-city')"
+    @click="showForm('filter-complex', 'filter-city')"
   >
     <div>
       <a href="javascript:;">
         <label for="">{{ choose }}&nbsp;</label>
         <i class="select-icon"></i>
       </a>
-      <div
-        :class="['shadow', { curShow: isShow == 'filter-city' }]">
+      <div :class="['shadow', { curShow: isShow == 'filter-city' }]">
         <div class="city-content">
           <div class="city-level city-level1">
             <ul>
@@ -57,7 +56,7 @@
             </ul>
           </div>
         </div>
-        <div class="mask"></div>
+        <div class="mask" @click.stop="hide"></div>
       </div>
     </div>
   </div>
@@ -84,7 +83,6 @@ export default {
       regionId: 0,
       cityidfilter: [],
       provinceidfilter: [],
-
     };
   },
   components: {},
@@ -108,10 +106,13 @@ export default {
     },
   },
 
-  mounted() {
-  },
+  mounted() {},
 
   methods: {
+    hide() {
+      this.isShow = "";
+      document.body.style.position = "static";
+    },
     showForm(curFilter, curBlock = "") {
       if (curFilter == "filter-select") {
         this.isSelected = curFilter;
@@ -125,14 +126,24 @@ export default {
       }
     },
     hideBlock() {
-      this.$emit("showBlock", {
-        isShow: "",
+      let params = {
+        isShow: this.isShow,
         sort: this.$attrs.params.sort,
         curCity: this.curCity,
         regionId: this.regionId,
         cityidfilter: this.cityidfilter,
         provinceidfilter: this.provinceidfilter,
-      });
+      }
+      if(this.$attrs.navigationIds!==-1){
+        params.navigationIds=this.$attrs.navigationIds
+      }
+      if(this.$attrs.navigationValueIds!==-1){
+        params.navigationValueIds = this.$attrs.navigationValueIds
+      }
+      if(this.$attrs.tagsName!==-1){
+        params.tagsName = this.$attrs.tagsName
+      }
+      this.$emit("showBlock", params);
     },
     optCity(provinceItem) {
       this.firstOpt = true;
@@ -158,7 +169,7 @@ export default {
         this.cityShowItem2 = "";
         this.regionId = 0;
         this.cityidfilter = [cityItem.cityId, cityItem.cityName];
-        this.isShow = "";
+        this.hide();
         return;
       }
       this.secondOpt = true;
@@ -171,7 +182,7 @@ export default {
       this.curCity = townItem.regionName;
       this.regionId = townItem.regionId;
       this.cityidfilter = [townItem.regionId, townItem.regionName];
-      this.isShow = "";
+      this.hide();
     },
     getCityTown(cityId) {
       this.isChecked = true;
@@ -183,7 +194,7 @@ export default {
             this.secondOpt = true;
           } else {
             this.curCity = this.cityShowItem1;
-            this.isShow = "";
+            this.hide();
           }
         })
         .catch((err) => {

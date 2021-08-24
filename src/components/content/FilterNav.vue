@@ -4,115 +4,7 @@
     <div class="select-left">
       <filter-city v-bind="$attrs" v-on="$listeners"></filter-city>  
       <filter-sort class="filter-sort" v-bind="$attrs" v-on="$listeners"></filter-sort>
-      <!-- <div
-        class="filter-city isChecked"
-        @click="showForm('filter-complex', 'filter-city')"
-      >
-        <div>
-          <a href="javascript:;">
-            <label for="">{{choose}}&nbsp;</label>
-            <i class="select-icon"></i>
-          </a>
-          <div
-            :class="['shadow', { curShow: isShow == 'filter-city' }]"
-            @click.stop="hideBlock()"
-          >
-            <div class="city-content">
-              <div class="city-level city-level1">
-                <ul>
-                  <li
-                    v-for="(item, index) in provinceData"
-                    :key="index"
-                    :class="['city-item', { cityActive: cityShowItem == item.provinceName }]"
-                    @click.stop="optCity(item)"
-                  >
-                    {{ item.provinceName }}
-                  </li>
-                </ul>
-              </div>
-              <div :class="['city-level',{'city-level2':firstOpt}]">
-                <ul>
-                  <li v-for="(item, index) in cityArray"
-                    :key="index"
-                    :class="['city-item', { cityActive: cityShowItem1 == item.cityName }]"
-                    @click.stop="optCity1(item)">
-                    {{item.cityName}}
-                  </li>
-                </ul>
-              </div>
-              <div :class="['city-level',{'city-level3':secondOpt}]">
-                <ul>
-                  <li v-for="(item, index) in cityTown"
-                    :key="index"
-                    :class="['city-item', { cityActive: cityShowItem2 == item.regionName }]"
-                    @click.stop="optCity2(item)">
-                    {{item.regionName}}
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div class="mask"></div>
-          </div>
-        </div>
-      </div> -->
-
-      <!-- <div
-        :class="[
-          'filter-complex',
-          { isChecked: isActive == 'filter-complex' },
-          { arrowChange: isActive == isShow },
-        ]"
-        @click="showForm('filter-complex')"
-      >
-        <div>
-          <a href="javascript:;">
-            <label for="">{{ sortWay }}&nbsp;</label>
-            <i class="select-icon"></i>
-          </a>
-          <div
-            :class="['shadow', { curShow: isShow == 'filter-complex' }]"
-            @click.stop="hideBlock()"
-          >
-            <div class="sort-content">
-              <ul>
-                <li
-                  v-for="(item, index) in [
-                    '综合',
-                    '价格从低到高',
-                    '价格从高到低',
-                    '评分从高到低',
-                  ]"
-                  :key="index"
-                  :class="{ sortActive: isActive1 == index }"
-                  @click.stop="optSort(item, index)"
-                >
-                  {{ item }}
-                </li>
-              </ul>
-            </div>
-            <div class="mask"></div>
-          </div>
-        </div>
-      </div> -->
-
-      <!-- <div
-        :class="['filter-sales', { isChecked: isActive == 'filter-sales' }]"
-        @click="showForm('filter-sales')"
-      >
-        <a href="javascript:;">
-          <label for="">销量&nbsp;</label>
-        </a>
-      </div> -->
-
-      <div
-        :class="['filter-select', { isChecked: isSelected == 'filter-select' }]"
-        @click="showForm('filter-select')"
-      >
-        <a href="javascript:;">
-          <label for="">筛选&nbsp;</label>
-          <i class="filter-png"></i>
-        </a>
-      </div>
+      <filter-screen v-bind="$attrs" v-on="$listeners"></filter-screen>
     </div>
 
     <div class="select-right">
@@ -124,8 +16,8 @@
 </template>
 
 <script>
-// import axios from "axios";
 import FilterCity from "./FilterItem/FilterCity";
+import FilterScreen from './FilterItem/FilterScreen';
 import FilterSort from "./FilterItem/FilterSort";
 
 export default {
@@ -161,36 +53,12 @@ export default {
   components: {
     FilterCity,
     FilterSort,
-  },
-
-  // computed: {
-  //   choose() {
-  //     return (
-  //       this.curCity ||
-  //       (this.allCity.local && this.allCity.local.cityName) ||
-  //       ""
-  //     );
-  //   },
-  // },
-
-  mounted() {},
-  watch: {
-    // 如果 `textValue` 发生改变，这个函数就会运行
-    curCity(newVal, oldVal) {
-      if (newVal !== oldVal) {
-        this.hideBlock();
-      }
-    },
+    FilterScreen,
   },
   methods: {
     show() {
       this.$emit("showBlock", {
-        isShow: this.isShow,
-        sort: this.sort,
-        curCity: this.curCity,
-        regionId: this.regionId,
-        cityidfilter: this.cityidfilter,
-        provinceidfilter: this.provinceidfilter,
+        isShow: true,
       });
     },
     // hideBlock(sales = 0) {

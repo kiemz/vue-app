@@ -1,59 +1,59 @@
 <template>
   <div>
     <div
-        :class="[
-          'filter-complex',
-          { isChecked: isActive == 'filter-complex' },
-          { arrowChange: isActive == isShow },
-        ]"
-        @click.stop="showForm('filter-complex')"
-      >
-        <div>
-          <a href="javascript:;">
-            <label for="">{{ sortWay }}&nbsp;</label>
-            <i class="select-icon"></i>
-          </a>
-          <div
-            :class="['shadow', { curShow: isShow == 'filter-complex' }]"
-            @click.stop="hideBlock()"
-          >
-            <div class="sort-content">
-              <ul>
-                <li
-                  v-for="(item, index) in [
-                    '综合',
-                    '价格从低到高',
-                    '价格从高到低',
-                    '评分从高到低',
-                  ]"
-                  :key="index"
-                  :class="{ sortActive: isActive1 == index }"
-                  @click.stop="optSort(item, index)"
-                >
-                  {{ item }}
-                </li>
-              </ul>
-            </div>
-            <div class="mask"></div>
+      :class="[
+        'filter-complex',
+        { isChecked: isActive == 'filter-complex' },
+        { arrowChange: isActive == isShow },
+      ]"
+      @click="showForm('filter-complex')"
+    >
+      <div>
+        <a href="javascript:;">
+          <label for="">{{ sortWay }}&nbsp;</label>
+          <i class="select-icon"></i>
+        </a>
+        <div
+          :class="['shadow', { curShow: isShow == 'filter-complex' }]"
+          @click.stop="hideBlock()"
+        >
+          <div class="sort-content">
+            <ul>
+              <li
+                v-for="(item, index) in [
+                  '综合',
+                  '价格从低到高',
+                  '价格从高到低',
+                  '评分从高到低',
+                ]"
+                :key="index"
+                :class="{ sortActive: isActive1 == index }"
+                @click.stop="optSort(item, index)"
+              >
+                {{ item }}
+              </li>
+            </ul>
           </div>
+          <div class="mask" @click.stop="hide"></div>
         </div>
       </div>
+    </div>
 
     <div
-        :class="['filter-sales', { isChecked: isActive == 'filter-sales' }]"
-        @click.stop="showForm('filter-sales')"
-      >
-        <a href="javascript:;">
-          <label for="">销量&nbsp;</label>
-        </a>
-      </div>  
+      :class="['filter-sales', { isChecked: isActive == 'filter-sales' }]"
+      @click.stop="showForm('filter-sales')"
+    >
+      <a href="javascript:;">
+        <label for="">销量&nbsp;</label>
+      </a>
+    </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'FilterSort',
-  data() { 
+  name: "FilterSort",
+  data() {
     return {
       isChecked: false,
       isSelected: "",
@@ -66,16 +66,18 @@ export default {
   },
   components: {},
 
-  created(){},
+  created() {},
 
   computed: {},
 
-  mounted(){
-  },
+  mounted() {},
 
   methods: {
+    hide() {
+      document.body.style.position = "static";
+      this.isShow = "";
+    },
     showForm(curFilter, curBlock = "") {
-      
       if (curFilter == "filter-select") {
         this.isSelected = curFilter;
         this.isShow = curBlock ? curBlock : curFilter;
@@ -88,18 +90,30 @@ export default {
       }
     },
     hideBlock(sales = 0) {
-      this.isShow = ""
+        
+      this.isShow = "";
       if (sales != 0) {
         this.sort = 5;
       }
-      this.$emit("showBlock", {
+      let params = {
         isShow: "",
         sort: this.sort,
         curCity: this.$attrs.curCity,
         regionId: this.$attrs.regionId,
         cityidfilter: this.$attrs.cityidfilter,
         provinceidfilter: this.$attrs.provinceidfilter,
-      });
+      }
+      if(this.$attrs.navigationIds!==-1){
+        params.navigationIds=this.$attrs.navigationIds
+      }
+      if(this.$attrs.navigationValueIds!==-1){
+        params.navigationValueIds = this.$attrs.navigationValueIds
+      }
+      if(this.$attrs.tagsName!==-1){
+        params.tagsName = this.$attrs.tagsName
+      }
+      document.body.style.position = "static";
+      this.$emit("showBlock", params);
     },
     optSort(item, index) {
       this.sortWay = item;
@@ -107,9 +121,8 @@ export default {
       this.sort = parseInt(index) + 1;
       this.hideBlock();
     },
-  }
-}
-
+  },
+};
 </script>
 
 <style lang="less" scoped>
@@ -263,10 +276,10 @@ export default {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.4);
 }
-.filter-sort{
+.filter-sort {
   display: flex;
   justify-content: space-around;
-  .div{
+  .div {
     flex: 1;
   }
 }
