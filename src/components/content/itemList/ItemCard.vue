@@ -32,7 +32,7 @@
         <div class="shop-block">
           <div class="shop-info">
             <p class="shop-name">{{itemInfo.shopName}}</p>
-            <span class="shop-address">&nbsp;{{curCity}}</span>
+            <span class="shop-address">&nbsp;{{itemInfo.cityName || itemInfo.provinceName}}</span>
           </div>
           <span class="shop-service">免费咨询</span>
         </div>    
@@ -51,8 +51,9 @@ export default {
   },
   props: {
     itemInfo: Object,
-    curCity: String
+    
   },
+  
   methods: {}
 }
 

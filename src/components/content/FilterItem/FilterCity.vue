@@ -25,7 +25,7 @@
               </li>
             </ul>
           </div>
-          <div :class="['city-level', { 'city-level2': firstOpt }]">
+          <div :class="['city-level', 'city-level2']">
             <ul>
               <li
                 v-for="(item, index) in cityArray"
@@ -33,6 +33,15 @@
                 :class="[
                   'city-item',
                   { cityActive: cityShowItem1 == item.cityName },
+                  {
+                    localCity:
+                      $attrs.allCity.local.cityName == item.cityName && isOfen,
+                  },
+                  {
+                    nowCity:
+                      !secondOpt &&
+                      $attrs.allCity.local.cityName == item.cityName,
+                  },
                 ]"
                 @click.stop="optCity1(item)"
               >
@@ -72,10 +81,11 @@ export default {
       isChecked: false,
       isShow: "",
       isSelected: "",
+      city: [],
       cityShowItem: "",
       cityShowItem1: "",
       cityShowItem2: "",
-      cityArray: [],
+      cityArray: JSON.parse(sessionStorage.getItem("ofenUse")),
       cityTown: [],
       firstOpt: false,
       secondOpt: false,
@@ -83,6 +93,7 @@ export default {
       regionId: 0,
       cityidfilter: [],
       provinceidfilter: [],
+      isOfen: true,
     };
   },
   components: {},
@@ -133,40 +144,54 @@ export default {
         regionId: this.regionId,
         cityidfilter: this.cityidfilter,
         provinceidfilter: this.provinceidfilter,
+        city: this.city,
+      };
+      if (this.$attrs.navigationIds !== -1) {
+        params.navigationIds = this.$attrs.navigationIds;
       }
-      if(this.$attrs.navigationIds!==-1){
-        params.navigationIds=this.$attrs.navigationIds
+      if (this.$attrs.navigationValueIds !== -1) {
+        params.navigationValueIds = this.$attrs.navigationValueIds;
       }
-      if(this.$attrs.navigationValueIds!==-1){
-        params.navigationValueIds = this.$attrs.navigationValueIds
-      }
-      if(this.$attrs.tagsName!==-1){
-        params.tagsName = this.$attrs.tagsName
+      if (this.$attrs.tagsName !== -1) {
+        params.tagsName = this.$attrs.tagsName;
       }
       this.$emit("showBlock", params);
     },
     optCity(provinceItem) {
       this.firstOpt = true;
+      this.isOfen = false;
       this.cityTown = [];
       this.cityShowItem = provinceItem.provinceName;
-      this.provinceidfilter = [
-        provinceItem.provinceId,
-        provinceItem.provinceName,
-      ];
-      let data = this.$attrs.allCity.list;
+
       this.cityArray = [];
-      for (let i = 0; i < data.length; i++) {
-        if (data[i].provinceName === provinceItem.provinceName) {
-          let { cityName, cityId } = data[i];
-          this.cityArray.push({ cityName, cityId });
+      if (provinceItem.provinceId == 9999) {
+        this.isOfen = true;
+        if (sessionStorage.getItem("ofenUse") != null) {
+          let m = JSON.parse(sessionStorage.getItem("ofenUse"));
+          this.cityArray = this.cityArray.concat(m);
+        }
+      } else {
+        this.provinceidfilter = [
+          provinceItem.provinceId,
+          provinceItem.provinceName,
+        ];
+        let data = this.$attrs.allCity.list;
+        for (let i = 0; i < data.length; i++) {
+          if (data[i].provinceName === provinceItem.provinceName) {
+            let { cityName, cityId } = data[i];
+            this.cityArray.push({ cityName, cityId });
+          }
         }
       }
     },
     optCity1(cityItem) {
-      if (this.isChecked) {
+      this.cityShowItem2 = "";
+      if (cityItem.provinceId) {
+        this.provinceidfilter = [cityItem.provinceId, cityItem.provinceName];
+      }
+      if (this.isChecked && this.cityShowItem1 == cityItem.cityName) {
         this.isChecked = false;
         this.curCity = this.cityShowItem1;
-        this.cityShowItem2 = "";
         this.regionId = 0;
         this.cityidfilter = [cityItem.cityId, cityItem.cityName];
         this.hide();
@@ -175,6 +200,7 @@ export default {
       this.secondOpt = true;
       this.cityShowItem1 = cityItem.cityName;
       this.cityidfilter = [cityItem.cityId, cityItem.cityName];
+      this.city = [cityItem.cityId, cityItem.cityName];
       this.getCityTown(cityItem.cityId);
     },
     optCity2(townItem) {
@@ -182,16 +208,18 @@ export default {
       this.curCity = townItem.regionName;
       this.regionId = townItem.regionId;
       this.cityidfilter = [townItem.regionId, townItem.regionName];
+
       this.hide();
     },
     getCityTown(cityId) {
-      this.isChecked = true;
       axios
         .post("/city/getCombineCityTown", { cityId })
         .then((res) => {
           if (res.data.data) {
             this.cityTown = res.data.data;
-            this.secondOpt = true;
+            if (this.cityTown && this.cityTown.length > 0) {
+              this.isChecked = true;
+            }
           } else {
             this.curCity = this.cityShowItem1;
             this.hide();
@@ -306,19 +334,43 @@ export default {
     display: flex;
     width: 100%;
     max-height: 320px;
-    .city-level1 ul li {
+    background-color: #eeeeee;
+    .city-level1 ul {
       background-color: #fff;
     }
-    .city-level2 ul li {
+    .city-level2 ul {
       background-color: #fff;
     }
-    .city-level3 ul li {
+    .city-level3 ul {
       background-color: #fff;
     }
     .city-level {
-      flex: 1;
-      overflow: scroll;
-      background-color: #eeeeee;
+      width: 33.33%;
+      overflow: auto;
+      ul {
+        width: 100%;
+        overflow-x: scroll;
+
+        li {
+          width: 100%;
+        }
+      }
+    }
+    .city-level2 ul .nowCity {
+      color: #ff6900;
+    }
+    .city-level2 ul .localCity::before {
+      content: "";
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background-image: url("../../../assets/img/local.png");
+      background-repeat: no-repeat;
+      vertical-align: middle;
+      background-size: 100%;
+      position: relative;
+      top: -1px;
+      margin-right: -5px;
     }
   }
   .sort-content {

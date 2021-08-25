@@ -44,7 +44,7 @@
         <img src="../assets/img/bar-search.png" alt="" />
       </div>
       <item-list :listData="listData" :curCity="curCity"></item-list>
-      <div class="loadMore">{{loadText}}</div>
+      <div class="loadMore">{{ loadText }}</div>
       <!-- :class="['loadMore',{loadMoreShow:!this.load}]" -->
     </div>
   </div>
@@ -89,7 +89,8 @@ export default {
       tagsName: -1,
       allParams: {},
       load: true,
-      loadText: '加载更多...'
+      loadText: "加载更多...",
+      city: [],
     };
   },
   components: {
@@ -111,40 +112,40 @@ export default {
   },
 
   methods: {
-    onScroll(){
+    onScroll() {
       let innerHeight = this.$refs.scroll.clientHeight;
       let outerHeight = document.documentElement.clientHeight;
       let scrollTop = document.documentElement.scrollTop;
-    
-      if(outerHeight + scrollTop >= innerHeight - 60 && this.load){
-        this.load = false
-        this.allParams.page = this.allParams.page +1
-        const data = this.allParams
+
+      if (outerHeight + scrollTop >= innerHeight - 60 && this.load) {
+        this.load = false;
+        this.allParams.page = this.allParams.page + 1;
+        const data = this.allParams;
         console.log(data);
         axios
           .post("/service/search/v2", qs.stringify(data))
           .then((res) => {
             let result = {};
             result = res.data.data;
-            if(result.list&&result.list.length){
+            if (result.list && result.list.length) {
               this.listData.push(...result.list);
-              this.load = true
-            }else{
-              this.load = false
-              this.loadText = '没有更多了'
+              this.load = true;
+            } else {
+              this.load = false;
+              this.loadText = "没有更多了";
             }
           })
           .catch((err) => {
             console.log(err);
           });
       }
-      
     },
     showBlock(data) {
-      window.scrollTo(0,0)
+      window.scrollTo(0, 0);
       this.isShow = data.isShow;
       document.body.style.position = "fixed";
       if (!data.isShow) {
+        this.city = data.city;
         this.curCity = data.curCity;
         this.regionId = data.regionId;
         this.cityidfilter = data.cityidfilter;
@@ -186,17 +187,46 @@ export default {
       this.formData = {};
     },
     getData(params = {}) {
-      // console.log('index里的getData的params',params );
-        // let arr= this.regionId == 0 ? this.cityidfilter : 1
-        // arr.unshift()
-        // sessionStorage.setItem('cityArray',JSON.stringify(arr))
+      let m = JSON.parse(sessionStorage.getItem("ofenUse")) || [
+        { cityName: "全国" },
+        {
+          cityName: this.allCity.local.cityName,
+          cityId: this.allCity.local.cityId,
+          provinceName: this.allCity.local.provinceName,
+          provinceId: this.allCity.local.provinceId,
+        },
+      ];
+      if (this.cityidfilter && this.cityidfilter.length > 0) {
+        let ar = {
+          cityName: this.regionId == 0 ? this.cityidfilter[1] : this.city[1],
+          cityId: this.regionId == 0 ? this.cityidfilter[0] : this.city[0],
+          provinceName: this.provinceidfilter[1],
+          provinceId: this.provinceidfilter[0],
+        };
+        if (
+          ar.cityName != "全国" &&
+          ar.cityName != this.allCity.local.provinceName
+        ) {
+          let flag = true;
+          for (let i = 0; i < m.length; i++) {
+            if (m[i].cityName == ar.cityName) {
+              flag = false;
+              break;
+            }
+          }
+          if (flag) {
+            m.push(ar);
+          }
+        }
+      }
+      sessionStorage.setItem("ofenUse", JSON.stringify(m));
 
       document.body.style.position = "static";
       const data = {
         ...this.params,
         ...params,
       };
-      this.allParams = {...data}
+      this.allParams = { ...data };
       // console.log('index里的getData的data',data);
       axios
         .post("/service/search/v2", qs.stringify(data))
@@ -235,14 +265,14 @@ export default {
         }
       }
       this.provinceData = province;
-      this.provinceData.unshift({provinceName: '常用',provinceId: 9999})
+      this.provinceData.unshift({ provinceName: "常用", provinceId: 9999 });
     },
   },
 };
 </script>
 
 <style lang="less" scoped>
-.loadMore{
+.loadMore {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
