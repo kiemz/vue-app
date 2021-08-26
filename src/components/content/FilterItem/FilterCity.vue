@@ -35,12 +35,12 @@
                   { cityActive: cityShowItem1 == item.cityName },
                   {
                     localCity:
-                      $attrs.allCity.local.cityName == item.cityName && isOfen,
+                      cityShow == item.cityName && isOfen,
                   },
                   {
                     nowCity:
                       !secondOpt &&
-                      $attrs.allCity.local.cityName == item.cityName,
+                      cityShow == item.cityName,
                   },
                 ]"
                 @click.stop="optCity1(item)"
@@ -106,6 +106,7 @@ export default {
         this.hideBlock();
       }
     },
+
   },
   computed: {
     choose() {
@@ -115,6 +116,9 @@ export default {
         ""
       );
     },
+    cityShow(){
+      return this.$attrs.allCity.local && this.$attrs.allCity.local.cityName || '';
+    }
   },
 
   mounted() {},

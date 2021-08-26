@@ -145,7 +145,7 @@ export default {
       this.isShow = data.isShow;
       document.body.style.position = "fixed";
       if (!data.isShow) {
-        this.city = data.city;
+        this.city = data.city ? data.city : this.city;
         this.curCity = data.curCity;
         this.regionId = data.regionId;
         this.cityidfilter = data.cityidfilter;
@@ -187,7 +187,7 @@ export default {
       this.formData = {};
     },
     getData(params = {}) {
-      
+
       let m = JSON.parse(sessionStorage.getItem("ofenUse")) || [
         { cityName: "全国" },
         {
