@@ -187,6 +187,7 @@ export default {
       this.formData = {};
     },
     getData(params = {}) {
+      
       let m = JSON.parse(sessionStorage.getItem("ofenUse")) || [
         { cityName: "全国" },
         {
